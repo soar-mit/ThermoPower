@@ -1,3 +1,6 @@
 RadialConduction1D
 TempSource1DlinFvCorrected
 Examples
+ZukauskasInLineCoeffs
+ZukauskasInLineHTC
+ZukauskasFrictionFactor

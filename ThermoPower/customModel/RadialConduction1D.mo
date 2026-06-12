@@ -1,9 +1,7 @@
 within ThermoPower.customModel;
 
 model RadialConduction1D
-  "Cylindrical (annular) tube model with Nw axial finite volumes and Nr radial nodes, solving 1D radial conduction without axial conduction.
-  Internal heat generation can be provided via internal value or external source.
-  Also, this model provides single area-averaged temperature for PKE purpose."
+  "Cylindrical (annular) tube model with Nw axial finite volumes and Nr radial nodes"
   extends Icons.MetalWall;
   import ThermoPower.Choices.CylinderFourier.NodeDistribution;
   // ============================================================
@@ -153,30 +151,14 @@ initial equation
     assert(false, "Unsupported initialisation option");
   end if;
   annotation(
-    Dialog(tab = "Heat Generation"));
-  annotation(
+    Dialog(tab = "Heat Generation"),
     Icon(graphics = {Text(extent = {{-100, 60}, {-40, 20}}, textString = "Int"), Text(extent = {{-100, -20}, {-40, -60}}, textString = "Ext"), Text(textColor = {191, 95, 0}, extent = {{-138, -60}, {142, -100}}, textString = "%name")}),
     Documentation(info = "<HTML>
-<p>Model of a cylindrical metal tube with <b>Nw</b> axial finite volumes
-and <b>Nr</b> radial nodes per volume, solving Fourier's radial heat
-conduction equation.</p>
-
-<p>Combines the axial discretisation of <tt>MetalTubeFV</tt> (DHTVolumes
-connectors with N=Nw) with the radial Fourier discretisation of
-<tt>CylinderFourier</tt>.</p>
-
-<p><b>Assumptions:</b></p>
-<ul>
-<li>Axial (longitudinal) heat conduction is neglected.</li>
-<li>Constant thermal properties (rhomcm, lambda).</li>
-<li>Radial node distribution options: uniform, thickInternal,
-    thickExternal, thickBoth.</li>
+<p>This model solves 1D radial conduction without axial conduction.
+  Internal heat generation can be provided via internal value or external source.
+  Also, this model provides single area-averaged temperature for PKE purpose.
+  <p> Tested in RadialConduction1D_test.
 </ul>
-
-<p><b>Connectors:</b></p>
-<ul>
-<li><tt>int</tt> (DHTVolumes, N=Nw): internal surface, T[j]=T[j,1]</li>
-<li><tt>ext</tt> (DHTVolumes, N=Nw): external surface, T[j]=T[j,Nr]</li>
-</ul>
-</HTML>"));
+</HTML>"),
+    experiment(StartTime = 0, StopTime = 1, Tolerance = 1e-06, Interval = 0.002));
 end RadialConduction1D;

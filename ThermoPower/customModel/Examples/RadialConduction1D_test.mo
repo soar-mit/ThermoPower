@@ -1,11 +1,7 @@
 within ThermoPower.customModel.Examples;
 
 model RadialConduction1D_test
-  "Test for RadialConduction1D and TempSource1DlinFvCorrected models.
-  Case1: temp. distribution at inner and heat source at outer with existing model.
-  Case2: Adiabatic inner and temp. distribution at outer with internal heat gen. value.
-  Case3: Adiabatic inner and temp. distribution at outer with external heat input.
-  Case2 and 3 should give same results"
+  "Test for RadialConduction1D and TempSource1DlinFvCorrected models"
   ThermoPower.customModel.RadialConduction1D Case1(Nw = 10, Nr = 5, L = 1, rint = 16e-3, rext = 20e-3, rhomcm = 8000*500, lambda = 16, nodeDistribution = ThermoPower.Choices.CylinderFourier.NodeDistribution.uniform, Tstartbar (displayUnit = "K")= 400, useHeatGen = false) annotation(
     Placement(transformation(origin = {-18, 60}, extent = {{-10, -10}, {10, 10}}, rotation = 90)));
   Modelica.Blocks.Sources.Constant const(k = 300) annotation(
@@ -65,5 +61,12 @@ connect(const12.y, Case3.heatGenInput) annotation(
     Line(points = {{-5.2, -28}, {8.8, -28}, {8.8, -18}, {9.8, -18}}, color = {0, 0, 127}));
 annotation(
     Diagram(coordinateSystem(extent = {{-140, 100}, {100, -100}}), graphics = {Text(origin = {-15, 84}, extent = {{-7, 6}, {7, -6}}, textString = "Case1"), Text(origin = {-101, 20}, extent = {{-7, 6}, {7, -6}}, textString = "Case2"), Text(origin = {23, 20}, extent = {{-7, 6}, {7, -6}}, textString = "Case3")}),
-  experiment(StartTime = 0, StopTime = 300, Tolerance = 1e-06, Interval = 0.6));
+  experiment(StartTime = 0, StopTime = 300, Tolerance = 1e-06, Interval = 0.6),
+  Documentation(info = "<HTML>
+<p>Case1: temp. distribution at inner and heat source at outer with existing model.
+  <p>Case2: Adiabatic inner and temp. distribution at outer with internal heat gen. value.
+  <p>Case3: Adiabatic inner and temp. distribution at outer with external heat input.
+  <p>Case2 and 3 should give same results
+</ul>
+</HTML>"));
 end RadialConduction1D_test;

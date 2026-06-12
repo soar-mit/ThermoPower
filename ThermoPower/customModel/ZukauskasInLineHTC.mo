@@ -52,27 +52,9 @@ equation
   annotation (
     Icon(graphics={Text(extent={{-100,-52},{100,-80}}, textString="%name")}),
     Documentation(info="<html>
-<p>Zukauskas correlation for external cross-flow over an in-line tube bank,
-following Incropera, <i>Fundamentals of Heat and Mass Transfer</i>, Table 7.7.</p>
-
-<p><b>Correlation:</b> Nu = C * Re^m * Pr^0.36, with (Pr/Pr_wall)^0.25 omitted.</p>
-
-<p><b>Setup requirements in the host Flow1DFV component:</b></p>
-<ul>
-<li><tt>Dhyd</tt> must be set to the <b>tube outer diameter</b> D_o</li>
-<li><tt>A</tt> must be set to the <b>minimum (gap) flow area</b>, so that w/A
-    yields the mass flux at maximum velocity</li>
-<li><tt>omega</tt> = pi * D_o (per single tube)</li>
-<li><tt>Nt</tt> = total number of tubes in the bundle</li>
-</ul>
-
-<p><b>Limitations:</b></p>
-<ul>
-<li>Pr/Pr_wall correction omitted (acceptable for He, single-phase gases)</li>
-<li>Originally intended for bundles with N_L &ge; 20 rows; correction factor C2
-    for fewer rows is not applied here</li>
-<li>Re-regime transitions are noEvent if-then-else, derivative discontinuous at
-    100, 1000, 2e5 (acceptable for steady or slowly varying flow)</li>
+<p>Zukauskas correlation for external cross-flow over an in-line tube bank
+<p> Nu = C * Re^m * Pr^0.36, with (Pr/Pr_wall)^0.25 omitted.</p>
+<p> Tested in ZukauskasInLineHTC_test.
 </ul>
 </html>"));
 end ZukauskasInLineHTC;

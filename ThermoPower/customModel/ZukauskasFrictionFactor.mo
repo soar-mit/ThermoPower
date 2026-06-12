@@ -1,7 +1,7 @@
 within ThermoPower.customModel;
 
 function ZukauskasFrictionFactor
-  "Only for in-line grid, square pt_OD and pl. From https://www.thermopedia.com/content/1211/, Heat exhanger design handbook"
+  "Zukauskas friction factor for cross-flow over in-line tube bundles"
   input Real Re "Reynolds number";
   input Real pt_OD "Pitch to diameter ratio";
   output Real f "Friction factor (per tube row)";
@@ -30,9 +30,6 @@ algorithm
      else 0);
              
   annotation(Documentation(info="<html>
-<p>Zukauskas friction factor for cross-flow over in-line tube bundles
-with square pitch (pt_OD = pl). Polynomial fit from 
-Heat Exchanger Design Handbook / Thermopedia.</p>
-<p>Supported pt_OD/OD values: 1.25, 1.5, 2.0.</p>
+<p>Polynomial fit from https://www.thermopedia.com/content/1211/, Heat exhanger design handbook
 </html>"));
 end ZukauskasFrictionFactor;

@@ -39,6 +39,7 @@ equation
     Documentation(info = "<html>
 <p> This model extends ThermoPower.customModel.MyFanBase to simulate pump-like H-Q behavior.
 Only use for low Dp (blower or fan like reactor primary system) conditions, not as turbomachinery.
-<p><b> Important: The base fan model does not consider enthalpy rise.
+<p><b> Important:</b> The base fan model does not consider enthalpy rise.
+<p><b> Important: </b> Head should be specific work(dP/rho), not [m]. This is a typo in original characteristic function.
 </html>"));
 end Fan;

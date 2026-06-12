@@ -243,7 +243,8 @@ initial equation
 <p> The original model can't choose FanCharacteristics from toggle. May be a bug...?
   It is fixed by 'replaceable model FlowCharacteristicModel = Functions.FanCharacteristics.Models.BaseFlow'
   
-  <p><b> Important: Enthalpy increase due to fan work is not considered to match heat balance between reactor and SG.
+  <p><b> Important:</b> Enthalpy increase due to fan work is not considered to match heat balance between reactor and SG.
+  <p><b> Important: </b> Head should be specific work(dP/rho), not [m]. This is a typo in original characteristic function.
 </ul>
 </html>"));
 end MyFanBase;

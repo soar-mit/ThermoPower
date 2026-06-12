@@ -1,6 +1,9 @@
+Examples
 RadialConduction1D
 TempSource1DlinFvCorrected
-Examples
 ZukauskasInLineCoeffs
 ZukauskasInLineHTC
 ZukauskasFrictionFactor
+LumpedCondenser
+Fan
+MyFanBase

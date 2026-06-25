@@ -14,8 +14,7 @@ model Fan
 
   Modelica.Blocks.Interfaces.RealInput in_n if use_in_n
     "Rotational speed [rpm]" annotation(
-    Placement(transformation(
-      origin = {-26, 80}, extent = {{-10, -10}, {10, 10}}, rotation = 270)));
+    Placement(transformation(origin = {-12, 80}, extent = {{-10, -10}, {10, 10}}, rotation = 270), iconTransformation(origin = {-6, 82}, extent = {{-10, -10}, {10, 10}}, rotation = 270)));
 
 protected
   Modelica.Blocks.Interfaces.RealInput in_n_internal

@@ -19,9 +19,11 @@ model RadialConduction1D
   parameter Boolean useHeatGen = false "Enable internal heat generation";
   parameter Real heatGenValue = 0 "Heat generation value [W/m3]" annotation(
     Dialog(enable = useHeatGen));
-  parameter Boolean useExternalHeatGen = false "true: from RealInput, false: from parameter [W]" annotation(Dialog(group="External inputs"), choices(checkBox=true));
+  parameter Boolean useExternalHeatGen = false "true: from RealInput, false: from parameter [W]" annotation(Dialog(group="External inputs", enable=useHeatGen), choices(checkBox=true));
+  parameter Real axialProfile[Nw] = ones(Nw) "Relative axial power distribution (will be normalized to 1)" annotation(
+  Dialog(enable = useHeatGen));
   Modelica.Blocks.Interfaces.RealInput heatGenInput if useExternalHeatGen "External heat generation input [W]"
-  annotation(Placement(transformation(origin = {-100, 0}, extent = {{-10, -10}, {10, 10}}), iconTransformation(origin = {-100, 0}, extent = {{-10, -10}, {10, 10}})));
+  annotation(Placement(transformation(origin = {-100, -20}, extent = {{-10, -10}, {10, 10}}), iconTransformation(origin = {-100, -20}, extent = {{-10, -10}, {10, 10}})));
   
   // ============================================================
   //  Initialisation
@@ -39,6 +41,7 @@ model RadialConduction1D
   // ============================================================
   constant Real pi = Modelica.Constants.pi;
   final parameter SI.Length dz = L/Nw "Axial length per volume";
+  final parameter Real normalizedAxialProfile[Nw] = axialProfile/sum(axialProfile) "Normalized axial power distribution";
   // ============================================================
   //  Variables
   // ============================================================
@@ -50,8 +53,9 @@ model RadialConduction1D
   SI.Temperature T[Nw, Nr](each start = Tstartbar) "Nodal temperatures";
   // Axial-average mean wall temperature (for diagnostics)
   SI.Temperature Tm[Nw] "Mean radial temperature per axial volume";
-  Real qvol "Volumetric heat generation rate used in equations [W/m3]";
-  Modelica.Blocks.Interfaces.RealOutput Tm_avg "Average temperature [K]" annotation(Placement(transformation(extent = {{90, -10}, {110, 10}})));
+  Real qvol_avg "Average volumetric heat generation rate [W/m3]";
+  Real qvol[Nw] "Actual volumetric heat genration rate [W/m3]";
+  Modelica.Blocks.Interfaces.RealOutput Tm_avg "Average temperature [K]" annotation(Placement(transformation(origin = {-10, 20}, extent = {{-90, -10}, {-110, 10}}, rotation = -0), iconTransformation(origin = {-2, 20}, extent = {{-90, -10}, {-110, 10}}, rotation = -0)));
   outer ThermoPower.System system "System wide properties";
   // ============================================================
   //  Connectors
@@ -104,11 +108,15 @@ equation
 // ===========================================================
   if useExternalHeatGen then
     connect(heatGenInput, heatGenInput_internal);
-    qvol = heatGenInput_internal/(pi*(rext^2-rint^2)*L*Nt) "W to W/m3";
+    qvol_avg = heatGenInput_internal/(pi*(rext^2-rint^2)*L*Nt) "W to W/m3";
   else 
     heatGenInput_internal = 0;
-    qvol = heatGenValue;
+    qvol_avg = heatGenValue;
   end if;
+  // Assign axial distribution
+  for j in 1:Nw loop
+    qvol[j] = qvol_avg*Nw*normalizedAxialProfile[j];
+  end for;
 // ===========================================================
 //  Energy balance per axial volume j, per radial node i
 // ===========================================================
@@ -117,13 +125,13 @@ equation
     int.T[j] = T[j, 1];
     ext.T[j] = T[j, Nr];
 // --- Node i = 1  (internal boundary) ---
-    rhomcm*Ar[1]*dz*Nt*der(T[j, 1]) = int.Q[j] + lambda*2*pi*r_mid[1]*dz*Nt*(T[j, 2] - T[j, 1])/(r[2] - r[1]) + qvol*Ar[1]*dz*Nt;
+    rhomcm*Ar[1]*dz*Nt*der(T[j, 1]) = int.Q[j] + lambda*2*pi*r_mid[1]*dz*Nt*(T[j, 2] - T[j, 1])/(r[2] - r[1]) + qvol[j]*Ar[1]*dz*Nt;
 // --- Interior nodes i = 2 .. Nr-1 ---
     for i in 2:Nr - 1 loop
-      rhomcm*Ar[i]*dz*Nt*der(T[j, i]) = lambda*2*pi*r_mid[i - 1]*dz*Nt*(T[j, i - 1] - T[j, i])/(r[i] - r[i - 1]) + lambda*2*pi*r_mid[i]*dz*Nt*(T[j, i + 1] - T[j, i])/(r[i + 1] - r[i]) + qvol*Ar[i]*dz*Nt;
+      rhomcm*Ar[i]*dz*Nt*der(T[j, i]) = lambda*2*pi*r_mid[i - 1]*dz*Nt*(T[j, i - 1] - T[j, i])/(r[i] - r[i - 1]) + lambda*2*pi*r_mid[i]*dz*Nt*(T[j, i + 1] - T[j, i])/(r[i + 1] - r[i]) + qvol[j]*Ar[i]*dz*Nt;
     end for;
 // --- Node i = Nr (external boundary) ---
-    rhomcm*Ar[Nr]*dz*Nt*der(T[j, Nr]) = lambda*2*pi*r_mid[Nr - 1]*dz*Nt*(T[j, Nr - 1] - T[j, Nr])/(r[Nr] - r[Nr - 1]) + ext.Q[j] + qvol*Ar[Nr]*dz*Nt;
+    rhomcm*Ar[Nr]*dz*Nt*der(T[j, Nr]) = lambda*2*pi*r_mid[Nr - 1]*dz*Nt*(T[j, Nr - 1] - T[j, Nr])/(r[Nr] - r[Nr - 1]) + ext.Q[j] + qvol[j]*Ar[Nr]*dz*Nt;
 // --- Mean radial temperature (area-weighted) ---
     Tm[j] = 1/(rext^2 - rint^2)*sum((T[j, i]*r[i] + T[j, i + 1]*r[i + 1])*(r[i + 1] - r[i]) for i in 1:Nr - 1);
   end for;

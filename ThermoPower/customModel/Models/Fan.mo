@@ -3,7 +3,7 @@ within ThermoPower.customModel.Models;
 model Fan
   "Centrifugal fan with prescribed rotational speed (analogous to Water.Pump)"
   
-  extends ThermoPower.customModel.MyFanBase;
+  extends ThermoPower.customModel.Models.MyFanBase;
 
   parameter Boolean use_in_n = false
     "= true to use the in_n connector, false to use n_const"

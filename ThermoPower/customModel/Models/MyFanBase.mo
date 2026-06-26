@@ -13,27 +13,27 @@ partial model MyFanBase
   parameter Boolean useFlowModel = false "Use function from replaceable model for flow characteristic"
     annotation(Evaluate = true, choices(CheckBox = true),Dialog(group="Characteristic curves"));
   replaceable function flowCharacteristic =
-      Functions.FanCharacteristics.baseFlow
+      ThermoPower.Functions.FanCharacteristics.baseFlow
     "Head vs. q_flow characteristic at nominal speed and density" annotation (
      Dialog(group="Characteristic curves"), choicesAllMatching=true,
      enable = not useFlowCharacteristicModel);
   replaceable model FlowCharacteristicModel =
-      Functions.FanCharacteristics.Models.BaseFlow annotation (
+      ThermoPower.Functions.FanCharacteristics.Models.BaseFlow annotation (
      Dialog(group="Characteristic curves"), choicesAllMatching=true, enable = not useFlowCharacteristicModel);
   // Power characteristic curves
   parameter Boolean usePowerCharacteristic=false
     "Use powerCharacteristic (vs. efficiencyCharacteristic)"
     annotation (Dialog(group="Characteristic curves"));
   replaceable function powerCharacteristic =
-      Functions.FanCharacteristics.constantPower constrainedby
-    Functions.FanCharacteristics.basePower
+      ThermoPower.Functions.FanCharacteristics.constantPower constrainedby
+    ThermoPower.Functions.FanCharacteristics.basePower
     "Power consumption vs. q_flow at nominal speed and density" annotation (
       Dialog(group="Characteristic curves", enable=usePowerCharacteristic),
       choicesAllMatching=true);
   // Efficiency characteristic curves
   replaceable function efficiencyCharacteristic =
-      Functions.FanCharacteristics.constantEfficiency (eta_nom=0.8)
-    constrainedby Functions.PumpCharacteristics.baseEfficiency
+      ThermoPower.Functions.FanCharacteristics.constantEfficiency (eta_nom=0.8)
+    constrainedby ThermoPower.Functions.PumpCharacteristics.baseEfficiency
     "Efficiency vs. q_flow at nominal speed and density" annotation (Dialog(
         group="Characteristic curves", enable=not usePowerCharacteristic),
       choicesAllMatching=true);

@@ -1,4 +1,4 @@
-within ThermoPower.customModel;
+within ThermoPower.customModel.Models;
 
 model Fan
   "Centrifugal fan with prescribed rotational speed (analogous to Water.Pump)"

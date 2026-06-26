@@ -1,4 +1,4 @@
-within ThermoPower.customModel;
+within ThermoPower.customModel.Models;
 
 partial model MyFanBase
   "Modified fanbase model"

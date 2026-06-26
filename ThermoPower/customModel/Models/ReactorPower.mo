@@ -1,6 +1,6 @@
-within ThermoPower.customModel;
+within ThermoPower.customModel.Models;
 
-model reactorPower "Point Kinetics Equations with 6 delayed neutron groups and temperature feedback"
+model ReactorPower "Point Kinetics Equations with 6 delayed neutron groups and temperature feedback"
   // ============================================================
   //  Power parameters
   // ============================================================
@@ -127,4 +127,4 @@ initial equation
 </HTML>"),
     experiment(StartTime = 0, StopTime = 1, Tolerance = 1e-06, Interval = 0.002),
     Diagram(graphics));
-end reactorPower;
+end ReactorPower;

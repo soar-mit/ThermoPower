@@ -1,4 +1,4 @@
-within ThermoPower.customModel;
+within ThermoPower.customModel.Models;
 
 model RadialConduction1D
   "Cylindrical (annular) tube model with Nw axial finite volumes and Nr radial nodes"

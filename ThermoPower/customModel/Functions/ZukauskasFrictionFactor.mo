@@ -1,4 +1,4 @@
-within ThermoPower.customModel;
+within ThermoPower.customModel.Functions;
 
 function ZukauskasFrictionFactor
   "Zukauskas friction factor for cross-flow over in-line tube bundles"

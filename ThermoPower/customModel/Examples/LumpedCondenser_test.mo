@@ -2,7 +2,7 @@ within ThermoPower.customModel.Examples;
 
 model LumpedCondenser_test
   "Test for LumpedCondenser model"
-  LumpedCondenser lumpedCondenser1(p = 1e5, Vtot = 10)  annotation(
+  ThermoPower.customModel.Models.LumpedCondenser lumpedCondenser1(p = 1e5, Vtot = 10)  annotation(
     Placement(transformation(origin = {-18, 52}, extent = {{-10, -10}, {10, 10}})));
   ThermoPower.Water.SourceMassFlow sourceMassFlow1(redeclare package Medium = ThermoPower.Water.StandardWater, T = 423.15, h = 2736444, use_T = false, w0 = 100) annotation(
     Placement(transformation(origin = {-78, 82}, extent = {{-10, -10}, {10, 10}})));
@@ -14,7 +14,7 @@ model LumpedCondenser_test
     Placement(transformation(origin = {-46, 20}, extent = {{-10, -10}, {10, 10}}, rotation = -180)));
   inner ThermoPower.System system(allowFlowReversal = false, initOpt = ThermoPower.Choices.Init.Options.fixedState) annotation(
     Placement(transformation(origin = {78, 84}, extent = {{-10, -10}, {10, 10}})));
-  ThermoPower.customModel.LumpedCondenser lumpedCondenser2(Vtot = 10, p = 1e5) annotation(
+  ThermoPower.customModel.Models.LumpedCondenser lumpedCondenser2(Vtot = 10, p = 1e5) annotation(
     Placement(transformation(origin = {-18, -46}, extent = {{-10, -10}, {10, 10}})));
   ThermoPower.Water.SourceMassFlow sourceMassFlow2(redeclare package Medium = ThermoPower.Water.StandardWater, T = 423.15, h = 2404054, use_T = false, w0 = 100) annotation(
     Placement(transformation(origin = {-78, -16}, extent = {{-10, -10}, {10, 10}})));

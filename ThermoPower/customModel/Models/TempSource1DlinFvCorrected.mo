@@ -1,4 +1,4 @@
-within ThermoPower.customModel;
+within ThermoPower.customModel.Models;
 
 model TempSource1DlinFvCorrected
     "Replace existing model as it can't employ multiple instances due to linspaceExt.

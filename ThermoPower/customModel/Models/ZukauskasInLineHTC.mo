@@ -1,4 +1,4 @@
-within ThermoPower.customModel;
+within ThermoPower.customModel.Models;
 
 model ZukauskasInLineHTC 
   "Zukauskas heat transfer correlation for in-line and square pt & pl tube bank, external cross-flow"
@@ -35,7 +35,7 @@ equation
     Re[j] = abs(w[j]*Dhyd/(A*mu[j]))*(pt_OD/(pt_OD-1));
     Pr[j] = cp[j]*mu[j]/k[j];
     
-    (C_c[j], m_exp[j]) = ZukauskasInLineCoeffs(Re[j]);
+    (C_c[j], m_exp[j]) = ThermoPower.customModel.Functions.ZukauskasInLineCoeffs(Re[j]);
     
     // Neglect Pr/Prw term
     Nu[j]    = C_c[j]*Re[j]^m_exp[j]*Pr[j]^0.36;

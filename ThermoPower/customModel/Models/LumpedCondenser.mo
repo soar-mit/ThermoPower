@@ -1,4 +1,4 @@
-within ThermoPower.customModel;
+within ThermoPower.customModel.Models;
 
 model LumpedCondenser
   "Modified ThermoPower.Examples.RankineCycle.Models.PrescribedPressureCondenser"

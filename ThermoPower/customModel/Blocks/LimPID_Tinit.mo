@@ -1,4 +1,4 @@
-within ThermoPower.customModel;
+within ThermoPower.customModel.Blocks;
 
 block LimPID_Tinit "PID controller with initialization time and set/measure normalization"
 

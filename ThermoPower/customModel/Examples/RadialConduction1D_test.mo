@@ -1,7 +1,7 @@
 within ThermoPower.customModel.Examples;
 
 model RadialConduction1D_test "Test for RadialConduction1D and TempSource1DlinFvCorrected models"
-  ThermoPower.customModel.RadialConduction1D Case1(Nw = 10, Nr = 5, L = 1, rint = 16e-3, rext = 20e-3, rhomcm = 8000*500, lambda = 16, nodeDistribution = ThermoPower.Choices.CylinderFourier.NodeDistribution.uniform, Tstartbar(displayUnit = "K") = 400, useHeatGen = false) annotation(
+  ThermoPower.customModel.Models.RadialConduction1D Case1(Nw = 10, Nr = 5, L = 1, rint = 16e-3, rext = 20e-3, rhomcm = 8000*500, lambda = 16, nodeDistribution = ThermoPower.Choices.CylinderFourier.NodeDistribution.uniform, Tstartbar(displayUnit = "K") = 400, useHeatGen = false) annotation(
     Placement(transformation(origin = {-18, 60}, extent = {{-10, -10}, {10, 10}}, rotation = 90)));
   Modelica.Blocks.Sources.Constant const(k = 300) annotation(
     Placement(transformation(origin = {-74, 50}, extent = {{-8, -8}, {8, 8}})));
@@ -13,41 +13,41 @@ model RadialConduction1D_test "Test for RadialConduction1D and TempSource1DlinFv
     Placement(transformation(origin = {8, 60}, extent = {{-10, -10}, {10, 10}}, rotation = -90)));
   Modelica.Blocks.Sources.Constant const11(k = 1000) annotation(
     Placement(transformation(origin = {32, 60}, extent = {{8, -8}, {-8, 8}})));
-  ThermoPower.customModel.RadialConduction1D Case2A(L = 1, Nr = 5, Nw = 10, Tstartbar(displayUnit = "K") = 400, lambda = 16, nodeDistribution = Choices.CylinderFourier.NodeDistribution.uniform, rext = 20e-3, rhomcm = 8000*500, rint = 0, useHeatGen = true, heatGenValue = 10000000) annotation(
+  ThermoPower.customModel.Models.RadialConduction1D Case2A(L = 1, Nr = 5, Nw = 10, Tstartbar(displayUnit = "K") = 400, lambda = 16, nodeDistribution = Choices.CylinderFourier.NodeDistribution.uniform, rext = 20e-3, rhomcm = 8000*500, rint = 0, useHeatGen = true, heatGenValue = 10000000) annotation(
     Placement(transformation(origin = {-122, -10}, extent = {{-10, -10}, {10, 10}}, rotation = 90)));
   Modelica.Blocks.Sources.Constant const2(k = 300) annotation(
     Placement(transformation(origin = {-70, -32}, extent = {{8, -8}, {-8, 8}})));
   Modelica.Blocks.Sources.Constant const21(k = 500) annotation(
     Placement(transformation(origin = {-68, 8}, extent = {{8, -8}, {-8, 8}})));
-  customModel.TempSource1DlinFvCorrected tempSource1DlinFvCorrected(Nw = 10) annotation(
+  customModel.Models.TempSource1DlinFvCorrected tempSource1DlinFvCorrected(Nw = 10) annotation(
     Placement(transformation(origin = {-38, 60}, extent = {{-10, -10}, {10, 10}}, rotation = 90)));
-  ThermoPower.customModel.TempSource1DlinFvCorrected tempSource1DlinFvCorrected1(Nw = 10) annotation(
+  ThermoPower.customModel.Models.TempSource1DlinFvCorrected tempSource1DlinFvCorrected1(Nw = 10) annotation(
     Placement(transformation(origin = {-98, -10}, extent = {{10, -10}, {-10, 10}}, rotation = -90)));
-  ThermoPower.customModel.RadialConduction1D Case3A(L = 1, Nr = 5, Nw = 10, Tstartbar(displayUnit = "K") = 400, lambda = 16, nodeDistribution = Choices.CylinderFourier.NodeDistribution.uniform, rext = 20e-3, rhomcm = 8000*500, rint = 0, useHeatGen = true, useExternalHeatGen = true) annotation(
+  ThermoPower.customModel.Models.RadialConduction1D Case3A(L = 1, Nr = 5, Nw = 10, Tstartbar(displayUnit = "K") = 400, lambda = 16, nodeDistribution = Choices.CylinderFourier.NodeDistribution.uniform, rext = 20e-3, rhomcm = 8000*500, rint = 0, useHeatGen = true, useExternalHeatGen = true) annotation(
     Placement(transformation(origin = {10, -8}, extent = {{-10, -10}, {10, 10}}, rotation = 90)));
   Modelica.Blocks.Sources.Constant const22(k = 300) annotation(
     Placement(transformation(origin = {64, -30}, extent = {{8, -8}, {-8, 8}})));
   Modelica.Blocks.Sources.Constant const211(k = 500) annotation(
     Placement(transformation(origin = {64, 10}, extent = {{8, -8}, {-8, 8}})));
-  ThermoPower.customModel.TempSource1DlinFvCorrected tempSource1DlinFvCorrected11(Nw = 10) annotation(
+  ThermoPower.customModel.Models.TempSource1DlinFvCorrected tempSource1DlinFvCorrected11(Nw = 10) annotation(
     Placement(transformation(origin = {34, -8}, extent = {{10, -10}, {-10, 10}}, rotation = -90)));
   Modelica.Blocks.Sources.Constant const12(k = 1.2566e+04) annotation(
     Placement(transformation(origin = {-14, -28}, extent = {{-8, -8}, {8, 8}})));
-  ThermoPower.customModel.RadialConduction1D Case2B(L = 1, Nr = 5, Nw = 10, Tstartbar(displayUnit = "K") = 400, heatGenValue = 10000000, lambda = 16, nodeDistribution = Choices.CylinderFourier.NodeDistribution.uniform, rext = 20e-3, rhomcm = 8000*500, rint = 0, useHeatGen = true, axialProfile = {1, 1, 1, 1, 1, 2, 2, 2, 2, 2}) annotation(
+  ThermoPower.customModel.Models.RadialConduction1D Case2B(L = 1, Nr = 5, Nw = 10, Tstartbar(displayUnit = "K") = 400, heatGenValue = 10000000, lambda = 16, nodeDistribution = Choices.CylinderFourier.NodeDistribution.uniform, rext = 20e-3, rhomcm = 8000*500, rint = 0, useHeatGen = true, axialProfile = {1, 1, 1, 1, 1, 2, 2, 2, 2, 2}) annotation(
     Placement(transformation(origin = {-122, -84}, extent = {{-10, -10}, {10, 10}}, rotation = 90)));
   Modelica.Blocks.Sources.Constant const23(k = 300) annotation(
     Placement(transformation(origin = {-70, -106}, extent = {{8, -8}, {-8, 8}})));
   Modelica.Blocks.Sources.Constant const212(k = 500) annotation(
     Placement(transformation(origin = {-68, -66}, extent = {{8, -8}, {-8, 8}})));
-  ThermoPower.customModel.TempSource1DlinFvCorrected tempSource1DlinFvCorrected12(Nw = 10) annotation(
+  ThermoPower.customModel.Models.TempSource1DlinFvCorrected tempSource1DlinFvCorrected12(Nw = 10) annotation(
     Placement(transformation(origin = {-98, -84}, extent = {{10, -10}, {-10, 10}}, rotation = -90)));
-  ThermoPower.customModel.RadialConduction1D Case3B(L = 1, Nr = 5, Nw = 10, Tstartbar(displayUnit = "K") = 400, lambda = 16, nodeDistribution = Choices.CylinderFourier.NodeDistribution.uniform, rext = 20e-3, rhomcm = 8000*500, rint = 0, useExternalHeatGen = true, useHeatGen = true, axialProfile = {1, 1, 1, 1, 1, 2, 2, 2, 2, 2}) annotation(
+  ThermoPower.customModel.Models.RadialConduction1D Case3B(L = 1, Nr = 5, Nw = 10, Tstartbar(displayUnit = "K") = 400, lambda = 16, nodeDistribution = Choices.CylinderFourier.NodeDistribution.uniform, rext = 20e-3, rhomcm = 8000*500, rint = 0, useExternalHeatGen = true, useHeatGen = true, axialProfile = {1, 1, 1, 1, 1, 2, 2, 2, 2, 2}) annotation(
     Placement(transformation(origin = {10, -82}, extent = {{-10, -10}, {10, 10}}, rotation = 90)));
   Modelica.Blocks.Sources.Constant const221(k = 300) annotation(
     Placement(transformation(origin = {64, -104}, extent = {{8, -8}, {-8, 8}})));
   Modelica.Blocks.Sources.Constant const2111(k = 500) annotation(
     Placement(transformation(origin = {64, -64}, extent = {{8, -8}, {-8, 8}})));
-  ThermoPower.customModel.TempSource1DlinFvCorrected tempSource1DlinFvCorrected111(Nw = 10) annotation(
+  ThermoPower.customModel.Models.TempSource1DlinFvCorrected tempSource1DlinFvCorrected111(Nw = 10) annotation(
     Placement(transformation(origin = {34, -82}, extent = {{10, -10}, {-10, 10}}, rotation = -90)));
   Modelica.Blocks.Sources.Constant const121(k = 1.2566e+04) annotation(
     Placement(transformation(origin = {-14, -102}, extent = {{-8, -8}, {8, 8}})));

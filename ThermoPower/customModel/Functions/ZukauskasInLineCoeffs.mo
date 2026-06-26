@@ -1,4 +1,4 @@
-within ThermoPower.customModel;
+within ThermoPower.customModel.Functions;
 
 function ZukauskasInLineCoeffs
   "Zukauskas in-line tube bank correlation coefficients, from Incropera Fundamentals of heat and mass transfer"

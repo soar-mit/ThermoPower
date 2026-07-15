@@ -6,28 +6,39 @@ model ReactorPower "Point Kinetics Equations with 6 delayed neutron groups and t
   // ============================================================
   parameter SI.Power P0 "Nominal (initial) thermal power [W]";
   parameter Boolean usePKE = false "Enable point kinetics";
+  parameter Boolean useTf = false "Enable Fuel temperature feedback" annotation(
+    Dialog(enable = usePKE));
+  parameter Boolean useTm = false "Enable Moderator temperature feedback" annotation(
+    Dialog(enable = usePKE));
+  parameter Boolean useTc = false "Enable Coolant temperature feedback" annotation(
+    Dialog(enable = usePKE));
+  parameter Boolean useRhoExt = false "Enable external reactivity insertion" annotation(
+    Dialog(enable = usePKE));
   // ============================================================
   //  Neutron kinetics parameters
   // ============================================================
-  parameter Real Lambda = 4e-4 "Prompt neutron generation time [s]" annotation(
+  parameter Real Lambda = 0.0003712 "Prompt neutron generation time [s]" annotation(
     Dialog(enable = usePKE));
-  parameter Real beta_total = 0.0065 "Total delayed neutron fraction" annotation(
+  parameter Real beta_total = 0.00657 "Total delayed neutron fraction" annotation(Dialog(enable = usePKE));
+  parameter Real beta[6] = {0.00020, 0.00113, 0.00138, 0.00244, 0.00103, 0.00039} "Delayed neutron fractions per group" annotation(
     Dialog(enable = usePKE));
-  parameter Real beta[6] = {0.000215, 0.001424, 0.001274, 0.002568, 0.000748, 0.000273} "Delayed neutron fractions per group" annotation(
-    Dialog(enable = usePKE));
-  parameter Real lambda[6] = {0.0124, 0.0305, 0.111, 0.301, 1.14, 3.01} "Delayed neutron precursor decay constants [1/s]" annotation(
+  parameter Real lambda[6] = {0.01243983, 0.03050824, 0.11143845, 0.30136834, 1.13630685, 3.01368339} "Delayed neutron precursor decay constants [1/s]" annotation(
     Dialog(enable = usePKE));
   // ============================================================
   //  Temperature feedback parameters
   // ============================================================
-  parameter Real alpha_f = -3e-5 "Fuel temperature reactivity coefficient [dk/k/K]" annotation(
-    Dialog(enable = usePKE));
-  parameter Real alpha_c = -1e-5 "Coolant temperature reactivity coefficient [dk/k/K]" annotation(
-    Dialog(enable = usePKE));
-  parameter SI.Temperature Tf0 "Reference fuel temperature [K]" annotation(
-    Dialog(enable = usePKE));
-  parameter SI.Temperature Tc0 "Reference coolant temperature [K]" annotation(
-    Dialog(enable = usePKE));
+  parameter Real alpha_f = 0 "Fuel temperature reactivity coefficient [dk/k/K]" annotation(
+    Dialog(enable = usePKE and useTf));
+  parameter Real alpha_m = 0 "Moderator temperature reactivity coefficient [dk/k/K]" annotation(
+    Dialog(enable = usePKE and useTm));
+  parameter Real alpha_c = 0 "Coolant temperature reactivity coefficient [dk/k/K]" annotation(
+    Dialog(enable = usePKE and useTc));
+  parameter SI.Temperature Tf0(displayUnit="K") = 0 "Reference fuel temperature [K]" annotation(
+    Dialog(enable = usePKE and useTf));
+  parameter SI.Temperature Tm0(displayUnit="K") = 0 "Reference moderator temperature [K]" annotation(
+    Dialog(enable = usePKE and useTm));
+  parameter SI.Temperature Tc0(displayUnit="K") = 0 "Reference coolant temperature [K]" annotation(
+    Dialog(enable = usePKE and useTc));
   // ============================================================
   //  Initialisation
   // ============================================================
@@ -41,36 +52,61 @@ model ReactorPower "Point Kinetics Equations with 6 delayed neutron groups and t
   SI.Power P "Absolute thermal power [W]";
   Real rho "Total reactivity [dk/k]";
   Real rho_feedback "Temperature feedback reactivity [dk/k]";
-  Real rho_ext_internal "Internal copy of external reactivity";
+  //Real rho_ext_internal "Internal copy of external reactivity";
   outer ThermoPower.System system "System wide properties";
   // ============================================================
   //  Connectors - Inputs
   // ============================================================
-  Modelica.Blocks.Interfaces.RealInput rho_ext if usePKE "External reactivity input [dk/k]" annotation(
-    Placement(transformation(extent = {{-10, -10}, {10, 10}}, rotation = 0, origin = {-100, 0})));
-  Modelica.Blocks.Interfaces.RealInput Tf if usePKE "Fuel temperature input [K]" annotation(
-    Placement(transformation(origin = {0, -100}, extent = {{-10, -10}, {10, 10}}, rotation = 90), iconTransformation(origin = {0, -100}, extent = {{-10, -10}, {10, 10}}, rotation = 90)));
-  Modelica.Blocks.Interfaces.RealInput Tc if usePKE "Coolant temperature input [K]" annotation(
-    Placement(transformation(origin = {0, 100}, extent = {{-10, 10}, {10, -10}}, rotation = -90), iconTransformation(origin = {0, 98}, extent = {{-10, 10}, {10, -10}}, rotation = -90)));
+  Modelica.Blocks.Interfaces.RealInput rho_ext if usePKE and useRhoExt "External reactivity input [dk/k]" annotation(
+    Placement(transformation(origin = {-100, 0}, extent = {{-10, -10}, {10, 10}}), iconTransformation(origin = {-90, 0}, extent = {{-10, -10}, {10, 10}})));
+  Modelica.Blocks.Interfaces.RealInput Tf if usePKE and useTf "Fuel temperature input [K]" annotation(
+    Placement(transformation(origin = {-60, -100}, extent = {{-10, -10}, {10, 10}}, rotation = 90), iconTransformation(origin = {-60, -90}, extent = {{-10, -10}, {10, 10}}, rotation = 90)));
+  Modelica.Blocks.Interfaces.RealInput Tm if usePKE and useTm "Moderator temperature input [K]" annotation(
+    Placement(transformation(origin = {0, -100}, extent = {{-10, -10}, {10, 10}}, rotation = 90), iconTransformation(origin = {0, -90}, extent = {{-10, -10}, {10, 10}}, rotation = 90)));
+  Modelica.Blocks.Interfaces.RealInput Tc if usePKE and useTc "Coolant temperature input [K]" annotation(
+    Placement(transformation(origin = {60, -100}, extent = {{-10, -10}, {10, 10}}, rotation = 90), iconTransformation(origin = {60, -90}, extent = {{-10, -10}, {10, 10}}, rotation = 90)));
   // ============================================================
   //  Connectors - Outputs
   // ============================================================
   Modelica.Blocks.Interfaces.RealOutput Power "Absolute thermal power output [W]" annotation(
-    Placement(transformation(extent = {{90, -10}, {110, 10}})));
+    Placement(transformation(extent = {{90, -10}, {110, 10}}), iconTransformation(origin = {-10, 0}, extent = {{90, -10}, {110, 10}})));
 protected
-  Modelica.Blocks.Interfaces.RealInput Tf_internal;
-  Modelica.Blocks.Interfaces.RealInput Tc_internal;
+  Real Tf_internal;
+  Real Tm_internal;
+  Real Tc_internal;
+  Real rho_ext_internal;
 public
 equation
 // ============================================================
 //  Power calculation
 // ============================================================
-  if usePKE then
-    connect(Tf, Tf_internal);
-    connect(Tc, Tc_internal);
-// reactivity calculation
+  if useTf then
+    Tf_internal = Tf;
+  else
+    Tf_internal = Tf0;
+  end if;
+
+  if useTm then
+    Tm_internal = Tm;
+  else
+    Tm_internal = Tm0;
+  end if;
+
+  if useTc then
+    Tc_internal = Tc;
+  else
+    Tc_internal = Tc0;
+  end if;
+  
+  if useRhoExt then
     rho_ext_internal = rho_ext;
-    rho_feedback = alpha_f*(Tf_internal - Tf0) + alpha_c*(Tc_internal - Tc0);
+  else
+    rho_ext_internal = 0;
+  end if;
+
+  if usePKE then
+// reactivity calculation
+    rho_feedback = alpha_f*(Tf_internal - Tf0) + alpha_m*(Tm_internal - Tm0) + alpha_c*(Tc_internal - Tc0);
     rho = rho_ext_internal + rho_feedback;
 // PKE calculation
     der(n) = (rho - beta_total)/Lambda*n + sum(lambda[i]*C[i] for i in 1:6);
@@ -79,11 +115,8 @@ equation
     end for;
   else
 // constant power
-    rho_ext_internal = 0;
     rho_feedback = 0;
     rho = 0;
-    Tf_internal = 0;
-    Tc_internal = 0;
     n = 1;
     for i in 1:6 loop
       C[i] = beta[i]/(Lambda*lambda[i]);
@@ -103,7 +136,7 @@ initial equation
     C[i] = beta[i]/(Lambda*lambda[i]);
   end for;
   annotation(
-    Icon(graphics = {Rectangle(fillColor = {255, 255, 255}, fillPattern = FillPattern.Solid, extent = {{-80, 80}, {80, -80}}), Text(textColor = {0, 0, 255}, extent = {{-60, 40}, {60, -40}}, textString = "Power"), Text(origin = {-28, -4}, textColor = {191, 95, 0}, extent = {{-100, -80}, {100, -110}}, textString = "Tf"), Text(origin = {-28, 194}, textColor = {191, 95, 0}, extent = {{-100, -80}, {100, -110}}, textString = "Tc"), Text(origin = {-156, 136}, textColor = {191, 95, 0}, extent = {{-100, -80}, {100, -110}}, textString = "rho_ext")}),
+    Icon(graphics = {Rectangle(fillColor = {255, 255, 255}, fillPattern = FillPattern.Solid, extent = {{-80, 80}, {80, -80}}), Text(textColor = {0, 0, 255}, extent = {{-60, 40}, {60, -40}}, textString = "Power"), Text( origin = {-60, 32},textColor = {191, 95, 0}, extent = {{-20, -80}, {20, -110}}, textString = "Tf"), Text(origin = {0, 32}, textColor = {191, 95, 0}, extent = {{-20, -80}, {20, -110}}, textString = "Tm"), Text(origin = {58, 32}, textColor = {191, 95, 0}, extent = {{-20, -80}, {20, -110}}, textString = "Tc"), Text(origin = {-114, 118}, textColor = {191, 95, 0}, extent = {{-20, -80}, {20, -110}}, textString = "rho_ext")}),
     Documentation(info = "<HTML>
 <p>Point Kinetics Equations (PKE) model with 6 delayed neutron groups.</p>
 

@@ -1,219 +1,199 @@
 within ThermoPower.customModel.Tests;
 
 model SaturatedDeaerator 
-  "Mixer with saturated liquid outlet enforcement (deaerator/OFWH model).
-   Identical to ThermoPower.Water.Mixer except outlet enthalpy is forced 
-   to saturated liquid at deaerator pressure."
+  "Deaerator with two inlets (condensate + extraction steam) at prescribed pressure.
+   Outlet is always saturated liquid at the deaerator pressure.
+   Based on LumpedCondenser pattern - both inlets, one outlet, prescribed p."
   
   replaceable package Medium = ThermoPower.Water.StandardWater constrainedby
-    Modelica.Media.Interfaces.PartialTwoPhaseMedium "Medium model"
-    annotation(choicesAllMatching = true);
+    Modelica.Media.Interfaces.PartialTwoPhaseMedium "Medium model";
   
-  Medium.ThermodynamicState fluidState "Thermodynamic state of the fluid";
-  
-  parameter Modelica.SIunits.Volume V "Internal volume";
-  parameter Modelica.SIunits.Area S = 0 "Internal surface";
-  parameter Modelica.SIunits.CoefficientOfHeatTransfer gamma = 0
-    "Internal Heat Transfer Coefficient" annotation (Evaluate = true);
-  parameter Modelica.SIunits.HeatCapacity Cm = 0 "Metal Heat Capacity" 
-    annotation (Evaluate = true);
-  parameter Boolean allowFlowReversal = system.allowFlowReversal
-    "= true to allow flow reversal, false restricts to design direction"
-    annotation(Evaluate = true);
-  outer ThermoPower.System system "System wide properties";
-  
-  parameter ThermoPower.Choices.FluidPhase.FluidPhases FluidPhaseStart = 
-    ThermoPower.Choices.FluidPhase.FluidPhases.Liquid
-    "Fluid phase (only for initialization!)"
-    annotation (Dialog(tab = "Initialisation"));
-  parameter Medium.AbsolutePressure pstart "Pressure start value"
-    annotation (Dialog(tab = "Initialisation"));
-  parameter Medium.SpecificEnthalpy hstart = 
-    if FluidPhaseStart == ThermoPower.Choices.FluidPhase.FluidPhases.Liquid then 1e5
-    elseif FluidPhaseStart == ThermoPower.Choices.FluidPhase.FluidPhases.Steam then 3e6 
-    else 1e6 "Specific enthalpy start value"
-    annotation (Dialog(tab = "Initialisation"));
-  parameter Medium.Temperature Tmstart = 300 
-    "Metal wall temperature start value"
-    annotation (Dialog(tab = "Initialisation"));
-  parameter ThermoPower.Choices.Init.Options initOpt = system.initOpt
+  // ============================================================
+  //  Parameters
+  // ============================================================
+  parameter Modelica.SIunits.Pressure pstart = 1.45e6 
+    "Initial deaerator pressure (start value only)"
+    annotation(Dialog(tab = "Initialisation"));
+  parameter Modelica.SIunits.Volume Vtot = 25 
+    "Total volume of the deaerator";
+  parameter Modelica.SIunits.Volume Vlstart = 0.7*Vtot 
+    "Start value of the liquid volume (storage section)"
+    annotation(Dialog(tab = "Initialisation"));
+  parameter ThermoPower.Choices.Init.Options initOpt = system.initOpt 
     "Initialisation option"
-    annotation (Dialog(tab = "Initialisation"));
-  parameter Boolean noInitialPressure = false
-    "Remove initial equation on pressure"
-    annotation (Dialog(tab = "Initialisation"), choices(checkBox = true));
-  parameter Boolean noInitialEnthalpy = false
-    "Remove initial equation on enthalpy"
-    annotation (Dialog(tab = "Initialisation"), choices(checkBox = true));
+    annotation(Dialog(tab = "Initialisation"));
   
-  ThermoPower.Water.FlangeA in1(
-    h_outflow(start = hstart),
-    redeclare package Medium = Medium,
-    m_flow(min = if allowFlowReversal then -Modelica.Constants.inf else 0))
-    "Condensate inlet"
-    annotation (Placement(transformation(extent = {{-100, 40}, {-60, 80}}, 
-      rotation = 0)));
-  ThermoPower.Water.FlangeA in2(
-    h_outflow(start = hstart),
-    redeclare package Medium = Medium,
-    m_flow(min = if allowFlowReversal then -Modelica.Constants.inf else 0))
-    "Extraction steam inlet"
-    annotation (Placement(transformation(extent = {{-100, -80}, {-60, -40}}, 
-      rotation = 0)));
-  ThermoPower.Water.FlangeB out(
-    h_outflow(start = hstart),
-    redeclare package Medium = Medium,
-    m_flow(max = if allowFlowReversal then +Modelica.Constants.inf else 0))
-    "Outlet (saturated liquid)"
-    annotation (Placement(transformation(extent = {{80, -20}, {120, 20}}, 
-      rotation = 0)));
+  outer ThermoPower.System system "System object";
   
-  // States (same as Mixer)
-  Medium.AbsolutePressure p(start = pstart, 
-    stateSelect = if Medium.singleState then StateSelect.avoid else StateSelect.prefer) 
-    "Fluid pressure";
-  Medium.SpecificEnthalpy h(start = hstart, stateSelect = StateSelect.prefer)
-    "Fluid specific enthalpy (lumped, may be subcooled if steam deficit)";
+  // ============================================================
+  //  Variables
+  // ============================================================
+  Modelica.SIunits.Pressure p(start = pstart) 
+    "Deaerator pressure (= steam inlet pressure)";
+  Modelica.SIunits.Density rhol "Density of saturated liquid";
+  Modelica.SIunits.Density rhov "Density of saturated steam";
+  Medium.SaturationProperties sat "Saturation properties";
+  Medium.SpecificEnthalpy hl "Saturated liquid enthalpy";
+  Medium.SpecificEnthalpy hv "Saturated vapor enthalpy";
+  Medium.Temperature Tsat "Saturation temperature";
   
-  Medium.SpecificEnthalpy hi1 "Inlet 1 specific enthalpy";
-  Medium.SpecificEnthalpy hi2 "Inlet 2 specific enthalpy";
-  Medium.SpecificEnthalpy ho "Outlet specific enthalpy";
+  Medium.SpecificEnthalpy h_cond_actual "Actual condensate inlet enthalpy";
+  Medium.SpecificEnthalpy h_steam_actual "Actual extraction steam inlet enthalpy";
   
-  Modelica.SIunits.Mass M "Fluid mass";
-  Modelica.SIunits.Energy E "Fluid energy";
-  Modelica.SIunits.HeatFlowRate Q "Heat flow rate exchanged with the outside";
-  Medium.Temperature T "Fluid temperature";
-  Medium.Temperature Tm(start = Tmstart) "Wall temperature";
-  Modelica.SIunits.Time Tr "Residence time";
+  Modelica.SIunits.Mass M "Total mass (liquid + vapor)";
+  Modelica.SIunits.Mass Ml "Liquid mass";
+  Modelica.SIunits.Mass Mv "Vapor mass";
+  Modelica.SIunits.Volume Vl(start = Vlstart) "Liquid volume";
+  Modelica.SIunits.Volume Vv "Vapor volume";
+  Modelica.SIunits.Energy E "Internal energy";
   
-  replaceable ThermoPower.Thermal.HT thermalPort "Internal surface of metal wall"
-    annotation (Placement(transformation(extent = {{-24, 66}, {24, 80}}, rotation = 0)));
-  
-  // Saturation properties at current pressure (NEW)
-  Medium.SaturationProperties sat "Saturation properties at p";
-  Medium.SpecificEnthalpy h_l_sat "Saturated liquid enthalpy at p";
-  Medium.Temperature T_sat "Saturation temperature at p";
-  
-  // Diagnostics
-  Real subcooling_margin 
-    "h - h_l_sat: positive = sat or superheated, negative = subcooled internal state";
+  // Diagnostic: how well is deaerator functioning?
+  Modelica.SIunits.Power Q_condense 
+    "Heat released by steam condensation";
+  Modelica.SIunits.Power Q_heat_condensate 
+    "Heat needed to heat condensate to saturation";
+  Real balance 
+    "Q_condense - Q_heat_condensate (positive = steam supply sufficient)";
   Boolean steam_sufficient 
-    "True if internal state is at or above saturation";
+    "True when steam supply exceeds condensate heating demand";
   
+  // ============================================================
+  //  Connectors
+  // ============================================================
+  ThermoPower.Water.FlangeA condensateIn(redeclare package Medium = Medium) 
+    "Condensate inlet (from CdPump)"
+    annotation(Placement(transformation(extent = {{-120, 40}, {-80, 80}})));
+  ThermoPower.Water.FlangeA steamIn(redeclare package Medium = Medium) 
+    "Extraction steam inlet (from turbine bleed)"
+    annotation(Placement(transformation(extent = {{-120, -80}, {-80, -40}})));
+  ThermoPower.Water.FlangeB waterOut(redeclare package Medium = Medium) 
+    "Feedwater outlet (saturated liquid)"
+    annotation(Placement(transformation(extent = {{80, -20}, {120, 20}})));
+
 equation
-  // === Fluid properties (identical to Mixer) ===
-  fluidState = Medium.setState_phX(p, h);
-  T = Medium.temperature(fluidState);
+  // ============================================================
+  //  Pressure: dictated by steam inlet
+  //  All ports share the same pressure (deaerator is one control volume)
+  // ============================================================
+  p = steamIn.p;                   // p follows extraction steam pressure
+  condensateIn.p = p;              // all ports at same p
+  waterOut.p = p;
   
-  M = V * Medium.density(fluidState) "Fluid mass";
-  E = M * Medium.specificInternalEnergy(fluidState) "Fluid energy";
-  der(M) = in1.m_flow + in2.m_flow + out.m_flow "Fluid mass balance";
-  der(E) = in1.m_flow * hi1 + in2.m_flow * hi2 + out.m_flow * ho 
-           - gamma * S * (T - Tm) + Q "Fluid energy balance";
-  
-  if Cm > 0 and gamma > 0 then
-    Cm * der(Tm) = gamma * S * (T - Tm) "Metal wall energy balance";
-  else
-    Tm = T;
-  end if;
-  
-  // === Saturation calculation (NEW) ===
+  // ============================================================
+  //  Saturation properties at current p
+  // ============================================================
   sat = Medium.setSat_p(p);
-  h_l_sat = Medium.bubbleEnthalpy(sat);
-  T_sat = Medium.saturationTemperature(p);
+  Tsat = Medium.saturationTemperature(p);
+  hl = Medium.bubbleEnthalpy(sat);
+  hv = Medium.dewEnthalpy(sat);
+  rhol = Medium.bubbleDensity(sat);
+  rhov = Medium.dewDensity(sat);
   
-  // === Inlet enthalpies (identical to Mixer) ===
-  hi1 = homotopy(if not allowFlowReversal then inStream(in1.h_outflow) else
-    actualStream(in1.h_outflow), inStream(in1.h_outflow));
-  hi2 = homotopy(if not allowFlowReversal then inStream(in2.h_outflow) else
-    actualStream(in2.h_outflow), inStream(in2.h_outflow));
+  // ============================================================
+  //  Outlet and reverse-flow enthalpies (all saturated liquid)
+  // ============================================================
+  waterOut.h_outflow = hl;         // outlet: saturated liquid (physics)
+  condensateIn.h_outflow = hl;     // backflow: saturated liquid
+  steamIn.h_outflow = hl;          // backflow: saturated liquid
   
-  // === OUTLET ENTHALPY: saturated liquid (KEY CHANGE) ===
-  // Mixer used:  ho = homotopy(if not allowFlowReversal then h else ..., h);
-  //              out.h_outflow = h;
-  // We override: out.h_outflow = h_l_sat (saturated liquid forced)
-  ho = homotopy(if not allowFlowReversal then h_l_sat else 
-    actualStream(out.h_outflow), h_l_sat);
+  // ============================================================
+  //  Actual inlet enthalpies (upstream-determined)
+  // ============================================================
+  h_cond_actual = inStream(condensateIn.h_outflow);
+  h_steam_actual = inStream(steamIn.h_outflow);
   
-  // Reverse-flow enthalpies (same as Mixer, use internal h)
-  in1.h_outflow = h;
-  in2.h_outflow = h;
-  out.h_outflow = h_l_sat;   // <-- forced to saturated liquid
+  // ============================================================
+  //  Volume, mass, energy
+  // ============================================================
+  Ml = Vl * rhol;
+  Mv = Vv * rhov;
+  Vtot = Vv + Vl;
+  M = Ml + Mv;
+  // Internal energy: assume liquid at hl, vapor at hv (saturated)
+  // -p*Vtot converts h to u (internal energy)
+  E = Ml*hl + Mv*hv - p*Vtot;
   
-  // Pressure equality (identical to Mixer)
-  in1.p = p;
-  in2.p = p;
-  out.p = p;
+  // ============================================================
+  //  Mass and Energy Balances
+  // ============================================================
+  der(M) = condensateIn.m_flow + steamIn.m_flow + waterOut.m_flow;
+  der(E) = condensateIn.m_flow * h_cond_actual 
+         + steamIn.m_flow * h_steam_actual 
+         + waterOut.m_flow * hl;
   
-  thermalPort.Q_flow = Q;
-  thermalPort.T = T;
-  
-  Tr = noEvent(M / max(abs(out.m_flow), Modelica.Constants.eps)) "Residence time";
-  
-  // === Diagnostics ===
-  subcooling_margin = h - h_l_sat;
-  steam_sufficient = subcooling_margin >= 0;
-  
+  // ============================================================
+  //  Diagnostics
+  // ============================================================
+  Q_condense = steamIn.m_flow * (h_steam_actual - hl);
+  Q_heat_condensate = condensateIn.m_flow * (hl - h_cond_actual);
+  balance = Q_condense - Q_heat_condensate;
+  steam_sufficient = balance > 0;
+
 initial equation
-  // Same as Mixer
   if initOpt == ThermoPower.Choices.Init.Options.noInit then
     // do nothing
   elseif initOpt == ThermoPower.Choices.Init.Options.fixedState then
-    if not noInitialPressure then
-      p = pstart;
-    end if;
-    if not noInitialEnthalpy then
-      h = hstart;
-    end if;
-    if (Cm > 0 and gamma > 0) then
-      Tm = Tmstart;
-    end if;
+    Vl = Vlstart;
   elseif initOpt == ThermoPower.Choices.Init.Options.steadyState then
-    if not noInitialEnthalpy then
-      der(h) = 0;
-    end if;
-    if (not Medium.singleState and not noInitialPressure) then
-      der(p) = 0;
-    end if;
-    if (Cm > 0 and gamma > 0) then
-      der(Tm) = 0;
-    end if;
-  elseif initOpt == ThermoPower.Choices.Init.Options.steadyStateNoP then
-    if not noInitialEnthalpy then
-      der(h) = 0;
-    end if;
-    if (Cm > 0 and gamma > 0) then
-      der(Tm) = 0;
-    end if;
+    der(Vl) = 0;
   else
     assert(false, "Unsupported initialisation option");
   end if;
-  
-  annotation (
+
+  annotation(
+    Icon(graphics = {
+      Rectangle(extent = {{-90, 80}, {90, -80}}, lineColor = {0, 0, 255},
+                lineThickness = 0.5, fillColor = {220, 235, 255}, 
+                fillPattern = FillPattern.Solid),
+      Rectangle(extent = {{-90, -20}, {90, -80}}, lineColor = {0, 0, 255},
+                fillColor = {100, 150, 255}, fillPattern = FillPattern.Solid),
+      Line(points = {{-70, 60}, {-70, 40}}, color = {0, 0, 200}, thickness = 0.5),
+      Line(points = {{-40, 60}, {-40, 40}}, color = {0, 0, 200}, thickness = 0.5),
+      Line(points = {{-10, 60}, {-10, 40}}, color = {0, 0, 200}, thickness = 0.5),
+      Line(points = {{20, 60}, {20, 40}}, color = {0, 0, 200}, thickness = 0.5),
+      Line(points = {{50, 60}, {50, 40}}, color = {0, 0, 200}, thickness = 0.5),
+      Text(extent = {{-110, 70}, {-70, 50}}, textString = "cond",
+           textColor = {0, 0, 0}),
+      Text(extent = {{-110, -50}, {-70, -70}}, textString = "steam",
+           textColor = {0, 0, 0}),
+      Text(extent = {{60, 10}, {100, -10}}, textString = "sat.liq",
+           textColor = {0, 0, 0}),
+      Text(extent = {{-100, -100}, {100, -130}}, lineColor = {85, 170, 255},
+           textString = "%name")
+    }),
     Documentation(info = "<html>
-<p><b>Saturated Deaerator</b> - Mixer variant with saturated liquid outlet.</p>
+<p><b>Saturated Deaerator</b> - based on LumpedCondenser pattern.</p>
 
-<p>Based on ThermoPower.Water.Mixer with identical mass/energy balance. The 
-only difference: <tt>out.h_outflow = h_l_sat = bubbleEnthalpy(p)</tt> 
-instead of <tt>out.h_outflow = h</tt>.</p>
+<h4>Structure</h4>
+<ul>
+<li>Two inlets: condensate (from CdPump) + extraction steam (from turbine)</li>
+<li>One outlet: saturated liquid feedwater (to FwPump)</li>
+<li>Prescribed pressure (like LumpedCondenser)</li>
+</ul>
 
-<p>This mimics the direct-contact heat exchange in a real deaerator where 
-the outlet is always saturated liquid at the deaerator pressure.</p>
+<h4>Physics</h4>
+<p>All ports at prescribed p. Deaerator internally maintains 
+two-phase equilibrium at saturation. Outlet always saturated liquid 
+(direct-contact heat exchange).</p>
+
+<h4>State variable</h4>
+<p><tt>Vl</tt>: liquid volume (level indicator). Mass and energy balances 
+determine der(Vl) implicitly through M and E.</p>
 
 <h4>Diagnostics</h4>
 <ul>
-<li><tt>subcooling_margin = h - h_l_sat</tt>: positive when internal state 
-is at saturation (steam supply sufficient), negative when subcooled 
-(steam deficit, real deaerator would lose pressure)</li>
-<li><tt>steam_sufficient</tt>: boolean version of above</li>
+<li><tt>Q_condense</tt>: heat released by steam condensation</li>
+<li><tt>Q_heat_condensate</tt>: heat needed to heat condensate to saturation</li>
+<li><tt>balance</tt>: positive if steam supply is sufficient</li>
+<li><tt>steam_sufficient</tt>: boolean indicator</li>
 </ul>
 
-<h4>Energy accounting</h4>
-<p>If internal h is below saturation (subcooling_margin &lt; 0), the 
-out.h_outflow = h_l_sat is higher than the actual fluid state. This 
-represents 'cheating' on energy balance, equivalent to assuming external 
-heat input maintains saturation. Monitor subcooling_margin during simulation 
-to verify physical validity.</p>
-</html>"),
-    Icon(graphics));
+<h4>Assumptions</h4>
+<ul>
+<li>Pressure prescribed (not dynamic)</li>
+<li>Instantaneous phase equilibrium (no thermal inertia between phases)</li>
+<li>Outlet always saturated liquid (no metastable subcooling)</li>
+<li>No heat loss to environment</li>
+</ul>
+</html>"));
 end SaturatedDeaerator;

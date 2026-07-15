@@ -1,0 +1,115 @@
+within ThermoPower.customModel.Tests;
+
+model SuperTwistingSMC_blocks
+  "Super-twisting SMC + mass-spring-damper, fully connect()-ed"
+
+  parameter Real c      = 1.0   "Sliding surface coefficient";
+  parameter Real lambda = 2.0   "|s|^0.5 continuous gain";
+  parameter Real alpha  = 0.002 "Super-twisting integral gain";
+  parameter Real T_C    = 0.05  "Derivative filter time constant";
+  parameter Real M = 1;
+  parameter Real D = 0.1;
+  parameter Real K = 1;
+
+  //================= Reference & error =================
+  Modelica.Blocks.Sources.Constant ref(k = 0)
+    annotation(Placement(transformation(extent = {{-190, 30}, {-170, 50}})));
+  Modelica.Blocks.Math.Feedback err
+    annotation(Placement(transformation(extent = {{-160, 30}, {-140, 50}})));
+
+  //================= Sliding surface =================
+  Modelica.Blocks.Math.Gain gain_c(k = c)
+    annotation(Placement(transformation(extent = {{-120, 50}, {-100, 70}})));
+  Modelica.Blocks.Continuous.Derivative derivative(k = 1, T = T_C,
+      initType = Modelica.Blocks.Types.Init.InitialState, x_start = 0)
+    annotation(Placement(transformation(extent = {{-120, 10}, {-100, 30}})));
+  Modelica.Blocks.Math.Add add_s
+    annotation(Placement(transformation(extent = {{-80, 30}, {-60, 50}})));
+
+  //================= Continuous term  lambda*sqrt(|s|)*sign(s) =================
+  Modelica.Blocks.Math.Abs abs_s
+    annotation(Placement(transformation(extent = {{-40, 50}, {-20, 70}})));
+  Modelica.Blocks.Math.Sqrt sqrt_s
+    annotation(Placement(transformation(extent = {{-10, 50}, {10, 70}})));
+  Modelica.Blocks.Math.Sign sign_s1
+    annotation(Placement(transformation(extent = {{-40, 20}, {-20, 40}})));
+  Modelica.Blocks.Math.Product prod_cont
+    annotation(Placement(transformation(extent = {{20, 35}, {40, 55}})));
+  Modelica.Blocks.Math.Gain gain_lambda(k = lambda)
+    annotation(Placement(transformation(extent = {{50, 35}, {70, 55}})));
+
+  //================= Integral term  w = int(alpha*sign(s)) =================
+  Modelica.Blocks.Math.Sign sign_s2
+    annotation(Placement(transformation(extent = {{-40, -10}, {-20, 10}})));
+  Modelica.Blocks.Math.Gain gain_alpha(k = alpha)
+    annotation(Placement(transformation(extent = {{-10, -10}, {10, 10}})));
+  Modelica.Blocks.Continuous.Integrator integ_w(k = 1,
+      initType = Modelica.Blocks.Types.Init.InitialState, y_start = 0)
+    annotation(Placement(transformation(extent = {{20, -10}, {40, 10}})));
+
+  //================= Output sum  U = cont + w =================
+  Modelica.Blocks.Math.Add add_U
+    annotation(Placement(transformation(extent = {{90, 15}, {110, 35}})));
+
+  //================= Plant:  accel = (U - D*x2 - K*x1)/M =================
+  Modelica.Blocks.Math.Gain gain_invM(k = 1/M) "1/M"
+    annotation(Placement(transformation(extent = {{130, 15}, {150, 35}})));
+  Modelica.Blocks.Math.Add3 sum_force(k1 = 1, k2 = -1, k3 = -1)
+    "U - D*x2 - K*x1"
+    annotation(Placement(transformation(extent = {{100, -50}, {120, -30}})));
+  Modelica.Blocks.Continuous.Integrator int_v(k = 1,
+      initType = Modelica.Blocks.Types.Init.InitialState, y_start = 0)
+    "x2 = velocity"
+    annotation(Placement(transformation(extent = {{160, 15}, {180, 35}})));
+  Modelica.Blocks.Continuous.Integrator int_x(k = 1,
+      initType = Modelica.Blocks.Types.Init.InitialState, y_start = 1)
+    "x1 = position"
+    annotation(Placement(transformation(extent = {{190, 15}, {210, 35}})));
+  Modelica.Blocks.Math.Gain gain_D(k = D) "D*x2 feedback"
+    annotation(Placement(transformation(extent = {{180, -70}, {160, -50}})));
+  Modelica.Blocks.Math.Gain gain_K(k = K) "K*x1 feedback"
+    annotation(Placement(transformation(extent = {{210, -90}, {190, -70}})));
+
+equation
+  //-------- error --------
+  connect(ref.y,  err.u1);
+  connect(int_x.y, err.u2);      // measured x1 back to feedback
+
+  //-------- sliding surface --------
+  connect(err.y, gain_c.u);
+  connect(err.y, derivative.u);
+  connect(gain_c.y, add_s.u1);
+  connect(derivative.y, add_s.u2);
+
+  //-------- continuous term --------
+  connect(add_s.y, abs_s.u);
+  connect(abs_s.y, sqrt_s.u);
+  connect(add_s.y, sign_s1.u);
+  connect(sqrt_s.y, prod_cont.u1);
+  connect(sign_s1.y, prod_cont.u2);
+  connect(prod_cont.y, gain_lambda.u);
+
+  //-------- integral term --------
+  connect(add_s.y, sign_s2.u);
+  connect(sign_s2.y, gain_alpha.u);
+  connect(gain_alpha.y, integ_w.u);
+
+  //-------- output sum --------
+  connect(gain_lambda.y, add_U.u1);
+  connect(integ_w.y, add_U.u2);
+
+  //-------- plant --------
+  connect(add_U.y, gain_invM.u);      // ??  see note
+  connect(add_U.y, sum_force.u1);     // U
+  connect(int_v.y, gain_D.u);         // x2 -> D*x2
+  connect(int_x.y, gain_K.u);         // x1 -> K*x1
+  connect(gain_D.y, sum_force.u2);
+  connect(gain_K.y, sum_force.u3);
+  connect(sum_force.y, gain_invM.u);
+  connect(gain_invM.y, int_v.u);      // accel -> x2
+  connect(int_v.y, int_x.u);          // x2 -> x1
+
+  annotation(
+    experiment(StartTime = 0, StopTime = 10, Tolerance = 1e-6, Interval = 1e-3),
+    Diagram(coordinateSystem(extent = {{-200, -100}, {230, 90}})));
+end SuperTwistingSMC_blocks;

@@ -1,0 +1,59 @@
+within ThermoPower.customModel.Tests;
+
+model IdealDeaerator_MassConserving
+  "Mass-conserving ideal deaerator with saturated-liquid outlet and ideal heat source"
+
+  replaceable package Medium = Water.StandardWater constrainedby
+    Modelica.Media.Interfaces.PartialMedium;
+
+  parameter Modelica.SIunits.Pressure p = 1.45e6
+    "Prescribed deaerator internal pressure";
+
+  Medium.SaturationProperties sat;
+  Medium.SpecificEnthalpy hl;
+  Modelica.SIunits.Temperature Tsat;
+
+  Medium.SpecificEnthalpy h_cond_in;
+  Medium.SpecificEnthalpy h_steam_in;
+
+  Modelica.SIunits.Power Qideal
+    "Ideal heat added to make outlet saturated liquid";
+
+  Water.FlangeA condensateIn(redeclare package Medium = Medium);
+  Water.FlangeA steamIn(redeclare package Medium = Medium);
+  Water.FlangeB waterOut(redeclare package Medium = Medium);
+
+equation
+  // Internal vessel pressure
+  // These ports should represent the deaerator-side nodes,
+  // not pump outlet nodes before pressure loss.
+  condensateIn.p = p;
+  steamIn.p = p;
+  waterOut.p = p;
+
+  sat.psat = p;
+  sat.Tsat = Medium.saturationTemperature(p);
+  Tsat = sat.Tsat;
+  hl = Medium.bubbleEnthalpy(sat);
+
+  // Fluid leaving the deaerator is saturated liquid
+  condensateIn.h_outflow = hl;
+  steamIn.h_outflow = hl;
+  waterOut.h_outflow = hl;
+
+  // Actual incoming enthalpies
+  h_cond_in = inStream(condensateIn.h_outflow);
+  h_steam_in = inStream(steamIn.h_outflow);
+
+  // Exact mass conservation
+  0 = condensateIn.m_flow + steamIn.m_flow + waterOut.m_flow;
+
+  // Ideal heat/source sink required for the imposed outlet condition
+  Qideal =
+    -(
+        condensateIn.m_flow*h_cond_in
+      + steamIn.m_flow*h_steam_in
+      + waterOut.m_flow*hl
+     );
+
+end IdealDeaerator_MassConserving;

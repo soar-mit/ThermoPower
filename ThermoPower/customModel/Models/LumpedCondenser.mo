@@ -56,7 +56,7 @@ equation
   Mv = Vv*rhov;
   Vtot = Vv + Vl;
   M = Ml + Mv;
-  E = Ml*hl + Mv*inStream(steamIn.h_outflow) - p*Vtot;
+  E = Ml*hl + Mv*hv - p*Vtot;
 //Energy and Mass Balances
   der(M) = steamIn.m_flow + waterOut.m_flow;
   der(E) = steamIn.m_flow*h_in_actual + waterOut.m_flow*hl - Q;

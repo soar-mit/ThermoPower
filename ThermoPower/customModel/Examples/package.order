@@ -3,3 +3,5 @@ LumpedCondenser_test
 ZukauskasInLineHTC_test
 SuperTwistingSMC_test
 SteamTurbineStodolaEta_test
+Deaeratort_test
+ReactorPower_test

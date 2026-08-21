@@ -56,6 +56,7 @@ model RadialConduction1D
   Real qvol_avg "Average volumetric heat generation rate [W/m3]";
   Real qvol[Nw] "Actual volumetric heat genration rate [W/m3]";
   Modelica.Blocks.Interfaces.RealOutput Tm_avg "Average temperature [K]" annotation(Placement(transformation(origin = {-10, 20}, extent = {{-90, -10}, {-110, 10}}, rotation = -0), iconTransformation(origin = {-2, 20}, extent = {{-90, -10}, {-110, 10}}, rotation = -0)));
+  Real Tmax  "Maximum temperature";
   outer ThermoPower.System system "System wide properties";
   // ============================================================
   //  Connectors
@@ -136,7 +137,9 @@ equation
     Tm[j] = 1/(rext^2 - rint^2)*sum((T[j, i]*r[i] + T[j, i + 1]*r[i + 1])*(r[i + 1] - r[i]) for i in 1:Nr - 1);
   end for;
 // --- Mean temperature for PKE purpose
-    Tm_avg = sum(Tm)/Nw;
+  Tm_avg = sum(Tm)/Nw;
+// --- Max temperature
+  Tmax = max(T);
 // ===========================================================
 //  Initial conditions
 // ===========================================================

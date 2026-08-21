@@ -40,8 +40,8 @@ equation
   //f = fnom*(1 + droop*(port.P - Poff)/Pgrid);
   f = fnom*(1 + droop*(port.P - in_pset_int)/Pgrid);
 initial equation
-  port.theta = 0 "Initial reference angle for the syncronously connected components";
-  f = fnom "Nominal frequency at initialization - sets Poff";
+//  port.theta = 0 "Initial reference angle for the syncronously connected components";
+//  f = fnom "Nominal frequency at initialization - sets Poff";
 //  port.P = Poff;
   annotation (Diagram(graphics), Icon(graphics={Line(points={{18,-16},{2,-38}},
           color={0,0,0}),Line(points={{-72,0},{-40,0}}, color={0,0,0}),

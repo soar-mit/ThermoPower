@@ -1,7 +1,7 @@
 within ThermoPower.customModel.Models;
 
 model Grid_v
-  parameter SI.Power Pgrid "Totl nominal power installed on the grid";
+  parameter SI.Power Pgrid "Total nominal power installed on the grid";
 //  final parameter SI.Power Poff(fixed = false) "Offset to guarantee f = fnom at initialization";
   parameter SI.PerUnit droop=0.05 "Grid droop";
   parameter SI.Frequency fnom=system.fnom "Nominal frequency";
@@ -40,6 +40,7 @@ equation
   //f = fnom*(1 + droop*(port.P - Poff)/Pgrid);
   f = fnom*(1 + droop*(port.P - in_pset_int)/Pgrid);
 initial equation
+// These are commented out to avoid over-constrained initialization
 //  port.theta = 0 "Initial reference angle for the syncronously connected components";
 //  f = fnom "Nominal frequency at initialization - sets Poff";
 //  port.P = Poff;
@@ -97,9 +98,8 @@ Casella</a>:<br>
      Rewrote from scratch.</li>
 </ul>
 </html>", info="<html>
-<p>This model represents a very large grid with primary frequency control. The frequency is not fixed to avoid varying index problems when 
-breakers connecting generators to it are opened. The grid frequency is initialized at the nominal value, then it changes based on the
-injected power and on the droop.</p>
+<p>In this modified grid model, input power can be given as either constant or external signal.</p>
+<p>Initial equations are commented out to avoid over-constrained initialization problem.<p>
 </html>"),
   experiment(StartTime = 0, StopTime = 1, Tolerance = 1e-06, Interval = 0.002));
 

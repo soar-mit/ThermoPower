@@ -40,5 +40,10 @@ equation
     Line(points = {{-13, -36}, {1, -36}}, color = {0, 0, 127}));
   annotation(
     experiment(StartTime = 0, StopTime = 180000, Tolerance = 1e-06, Interval = 60),
-  Diagram(graphics = {Text(origin = {-24, 88}, extent = {{-16, 8}, {16, -8}}, textString = "Case1"), Text(origin = {-24, -6}, extent = {{-16, 8}, {16, -8}}, textString = "Case2")}));
+  Diagram(graphics = {Text(origin = {-24, 88}, extent = {{-16, 8}, {16, -8}}, textString = "Case1"), Text(origin = {-24, -6}, extent = {{-16, 8}, {16, -8}}, textString = "Case2")}),
+  Documentation(info = "<HTML>
+<p>Verification of ReactorPower model.<p>
+<p>Case1: external reactivity insertion.<p>
+<p>Case2: Xenon dynamics. Compared with analytic solution when n=1->0.<p>
+</HTML>"));
 end ReactorPower_test;

@@ -1,6 +1,6 @@
 within ThermoPower.customModel.Models;
 
-model ReactorPower "Point Kinetics Equations with 6 delayed neutron groups and temperature feedback"
+model ReactorPower "Point Kinetics Equations with 6 delayed neutron groups"
   // ============================================================
   //  Power parameters
   // ============================================================
@@ -65,7 +65,7 @@ model ReactorPower "Point Kinetics Equations with 6 delayed neutron groups and t
   final parameter Real R_Xe_absorb = sigma_aX*phi0/R_Xe  "absorption fraction";
   final parameter Real rho_Xe0 = -gamma_tot*R_Xe_absorb/nu "Equilibrium Xe reactivity at nominal power [dK/K]";
   // ============================================================
-  //  Initialisation
+  //  Initialization
   // ============================================================
   parameter Real n_start = 1 "Initial relative power [-]" annotation(Dialog(tab="Initialization"));
   final parameter Real x_start=n_start/((1-R_Xe_absorb)+R_Xe_absorb*n_start) "Initial normalized Xe concentration";
@@ -199,18 +199,18 @@ initial equation
 <ul>
 <li>6-group delayed neutron precursor equations</li>
 <li>External reactivity input via RealInput (can be 0)</li>
-<li>Optional fuel/coolant temperature feedback:
-  rho_fb = alpha_f*(Tf - Tf0) + alpha_c*(Tc - Tc0)</li>
+<li>Optional fuel/moderator temperature feedback:
+  rho_fb = alpha_f*(Tf - Tf0) + alpha_m*(Tm - Tc0)</li>
+<li> Xenon/Iodine dynamics</li>
 <li>Absolute (W) and relative power outputs</li>
 </ul>
 
 <p><b>Connectors:</b></p>
 <ul>
 <li><tt>rho_ext</tt>: external reactivity [dk/k]</li>
-<li><tt>Tf</tt>: fuel temperature [K] (conditional)</li>
-<li><tt>Tc</tt>: coolant temperature [K] (conditional)</li>
+<li><tt>Tf</tt>: fuel temperature [K]</li>
+<li><tt>Tm</tt>: moderator temperature [K]</li>
 <li><tt>Power</tt>: absolute thermal power [W]</li>
-<li><tt>relPower</tt>: relative power [-]</li>
 </ul>
 </HTML>"),
     experiment(StartTime = 0, StopTime = 1, Tolerance = 1e-06, Interval = 0.002),

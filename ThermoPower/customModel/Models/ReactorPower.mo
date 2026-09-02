@@ -57,7 +57,7 @@ model ReactorPower "Point Kinetics Equations with 6 delayed neutron groups"
     Dialog(group = "Xenon", enable = usePKE and useXe));
   parameter Real nu = 2.43 "Neutrons per fission" annotation(
     Dialog(group = "Xenon", enable = usePKE and useXe));
-  parameter Real phi0 = 4.0e13 "Representative 1-group flux at nominal power [n/cm2/s]" annotation(Dialog(group = "Xenon", enable = usePKE and useXe));    
+  parameter Real phi0 = 5.1796e13 "Representative 1-group flux at nominal power [n/cm2/s]" annotation(Dialog(group = "Xenon", enable = usePKE and useXe));    
   final parameter Real gamma_tot = gamma_I+gamma_X "Total yield";
   final parameter Real g_I = gamma_I/gamma_tot "I-135 fraction";
   final parameter Real g_Xe = gamma_X/gamma_tot "Xe-135 fraction";
